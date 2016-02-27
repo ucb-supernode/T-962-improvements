@@ -32,12 +32,13 @@ const profile nc31profile = {
 	}
 };
 
-// SynTECH-LF normal temp lead-free profile
+// http://www.mouser.com/catalog/specsheets/chipquick_SMD291SNL250.pdf
+// modified to look more like the Amtech Syntech-LF that used to be here
 const profile syntechlfprofile = {
-	"AMTECH SYNTECH-LF", {
-		 50, 50, 50, 50, 60, 70, 80, 90,100,110,120,130,140,149,158,166, // 0-150s
-		175,184,193,201,210,219,230,240,245,240,230,219,212,205,198,191, // Adjust peak from 230 to 249C
-		184,177,157,137,117, 97, 77, 57,  0,  0,  0,  0,  0,  0,  0,  0  // 320-470s
+	"CHIPQUIK SAC305", {
+		 40, 40, 40, 40, 51, 62, 73, 84, 95,106,117,128,139,150,154,160,
+		166,172,178,185,197,210,223,236,245,236,228,217,209,202,195,188,
+		179,170,157,137,117, 97, 77, 48, 24,  0,  0,  0,  0,  0,  0,  0
 	}
 };
 
