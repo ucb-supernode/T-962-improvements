@@ -54,14 +54,14 @@ __attribute__((weak)) const char* Version_GetGitVersion(void) {
 }
 
 char* format_about = \
-"\nT-962-controller open source firmware (%s)" \
+"\nT-962A-controller open source firmware (%s) with Supernode mods" \
 "\n" \
-"\nSee https://github.com/UnifiedEngineering/T-962-improvement for more details." \
+"\nSee https://github.com/ucb-supernode/T-962-improvements for more details." \
 "\n" \
 "\nInitializing improved reflow oven...";
 
 char* help_text = \
-"\nT-962-controller serial interface.\n\n" \
+"\nT-962A-controller serial interface.\n\n" \
 " about                   Show about + debug information\n" \
 " bake <setpoint>         Enter Bake mode with setpoint\n" \
 " bake <setpoint> <time>  Enter Bake mode with setpoint for <time> seconds\n" \
@@ -132,9 +132,12 @@ int main(void) {
 	SystemFan_Init();
 
 	Sched_SetWorkfunc(MAIN_WORK, Main_Work);
-	Sched_SetState(MAIN_WORK, 1, TICKS_SECS(2)); // Enable in 2 seconds
+	Sched_SetState(MAIN_WORK, 1, TICKS_SECS(5)); // Enable in 6 seconds
 
-	Buzzer_Beep(BUZZ_1KHZ, 255, TICKS_MS(100));
+	Buzzer_Beep(BUZZ_250HZ, 255, TICKS_MS(100));
+	Buzzer_Beep(BUZZ_500HZ, 128, TICKS_MS(100));
+	Buzzer_Beep(BUZZ_1KHZ, 64, TICKS_MS(100));
+	Buzzer_Beep(BUZZ_2KHZ, 32, TICKS_MS(100));
 
 	while (1) {
 #ifdef ENABLE_SLEEP
@@ -345,7 +348,7 @@ static int32_t Main_Work(void) {
 		LCD_FB_Clear();
 		LCD_BMPDisplay(logobmp, 0, 0);
 
-		len = snprintf(buf, sizeof(buf), "T-962 controller");
+		len = snprintf(buf, sizeof(buf), "T-962A controller");
 		LCD_disp_str((uint8_t*)buf, len, LCD_ALIGN_CENTER(len), 0, FONT6X6);
 
 		len = snprintf(buf, sizeof(buf), "%s", Version_GetGitVersion());
@@ -537,7 +540,7 @@ static int32_t Main_Work(void) {
 		Reflow_SetSetpoint(setpoint);
 
 		if (timer > 0 && Reflow_IsDone()) {
-			Buzzer_Beep(BUZZ_1KHZ, 255, TICKS_MS(100) * NV_GetConfig(REFLOW_BEEP_DONE_LEN));
+			Buzzer_Beep(BUZZ_1KHZ, 128, TICKS_MS(100) * NV_GetConfig(REFLOW_BEEP_DONE_LEN));
 			Reflow_SetBakeTimer(0);
 			Reflow_SetMode(REFLOW_STANDBY);
 		}

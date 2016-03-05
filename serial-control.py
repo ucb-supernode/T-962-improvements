@@ -25,6 +25,7 @@ import matplotlib.gridspec as gridspec
 #
 FIELD_NAMES = 'Time,Temp0,Temp1,Temp2,Temp3,Set,Actual,Heat,Fan,ColdJ,Mode'
 TTYs = (#'/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2',
+        '/dev/tty.usbserial',
         '/dev/tty.PL2303-00002014', '/dev/tty.PL2303-00001014')
 BAUD_RATE = 115200
 
