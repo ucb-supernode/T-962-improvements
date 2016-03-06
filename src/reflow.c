@@ -107,7 +107,7 @@ static int32_t Reflow_Work(void) {
 		} else {
 			numticks++;
 		}
-	} else if (mymode == REFLOW_REFLOW || mymode == REFLOW_STANDBY) {
+	} else if (mymode == REFLOW_REFLOW) {
 		numticks++;
 	}
 

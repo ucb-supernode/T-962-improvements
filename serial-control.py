@@ -149,7 +149,7 @@ class Log(object):
 
 
     def save_logfiles(self):
-        if len(self.raw_log) < 30:
+        if len(self.raw_log) < 100:
             print 'Not saving log (too short)'
             return
 
@@ -215,10 +215,7 @@ class Log(object):
 
             self.axis_upper.set_title('Profile: %s Mode: %s ' % (self.profile, self.mode))
 
-        if 'Time' in log:
-            if log['Time'] == 0.0:
-                self.clear_logs()
-                return
+        if 'Time' in log and log['Time'] != 0.0:
             if 'Actual' not in log:
                 return
 
@@ -247,14 +244,12 @@ def logging_only():
         port.close()
 
 if __name__ == '__main__':
-    action = sys.argv[1] if len(sys.argv) > 1 else 'log'
     if len(sys.argv) > 1:
         try:
             port = serial.Serial(sys.argv[1], baudrate=BAUD_RATE)
             TTYs = [sys.argv[1]]
         except:
             pass
-
 
     print 'Logging reflow sessions...'
     logging_only()
