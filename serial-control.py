@@ -24,12 +24,15 @@ import matplotlib.gridspec as gridspec
 # settings
 #
 FIELD_NAMES = 'Time,Temp0,Temp1,Temp2,Temp3,Set,Actual,Heat,Fan,ColdJ,Mode'
-TTYs = (#'/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2',
+TTYs = ('COM1', 'COM2', 'COM3', 'COM4', 'COM5',
+        '/dev/ttyUSB0', '/dev/ttyUSB1', '/dev/ttyUSB2',
         '/dev/tty.usbserial',
         '/dev/tty.PL2303-00002014', '/dev/tty.PL2303-00001014')
 BAUD_RATE = 115200
 
 logdir = 'logs/'
+
+DEBUG = open('debug_output', 'w+')
 
 MAX_X = 470
 MAX_Y_temperature = 300
@@ -44,10 +47,10 @@ def timestamp(dt=None):
     return dt.strftime('%Y-%m-%d-%H%M%S')
 
 
-def logname(filetype, profile):
+def logname(filetype, profile, timestamp):
     return '%s%s-%s.%s' % (
         logdir,
-        timestamp(),
+        timestamp,
         profile.replace(' ', '_').replace('/', '_'),
         filetype
     )
@@ -59,9 +62,7 @@ def get_tty():
             port = serial.Serial(devname, baudrate=BAUD_RATE)
             print 'Using serial port %s' % port.name
             return port
-
         except:
-            print 'Tried serial port %s, but failed.' % str(devname)
             pass
 
     return None
@@ -92,7 +93,6 @@ class Line(object):
 
 class Log(object):
     profile = ''
-    last_action = None
 
     def __init__(self):
         self.init_plot()
@@ -149,11 +149,16 @@ class Log(object):
 
 
     def save_logfiles(self):
-        print 'Saved log in %s ' % logname('csv', self.profile)
-        plt.savefig(logname('png', self.profile))
-        plt.savefig(logname('pdf', self.profile))
+        if len(self.raw_log) < 30:
+            print 'Not saving log (too short)'
+            return
 
-        with open(logname('csv', self.profile), 'w+') as csvout:
+        now = timestamp()
+        print 'Saved log in %s ' % logname('csv', self.profile, now)
+        plt.savefig(logname('png', self.profile, now))
+        plt.savefig(logname('pdf', self.profile, now))
+
+        with open(logname('csv', self.profile, now), 'w+') as csvout:
             writer = csv.DictWriter(csvout, FIELD_NAMES.split(','))
             writer.writeheader()
 
@@ -172,9 +177,10 @@ class Log(object):
         return dict(zip(fields, values))
 
     def process_log(self, logline):
+        print >>DEBUG, logline
+
         # ignore 'comments'
         if logline.startswith('#'):
-            print logline
             return
 
         # parse Profile name
@@ -188,10 +194,10 @@ class Log(object):
 
         try:
             log = self.parse(logline)
-            print log
+            print >>DEBUG, log
         except ValueError, e:
             if len(logline) > 0:
-                print '!!', logline
+                print >>DEBUG, '!!', logline
             return
 
         if 'Mode' in log:
@@ -207,11 +213,12 @@ class Log(object):
             if log['Mode'] == 'BAKE':
                 self.profile = 'bake'
 
-            if log['Mode'] in ('REFLOW', 'BAKE'):
-                self.last_action = time()
             self.axis_upper.set_title('Profile: %s Mode: %s ' % (self.profile, self.mode))
 
-        if 'Time' in log and log['Time'] != 0.0:
+        if 'Time' in log:
+            if log['Time'] == 0.0:
+                self.clear_logs()
+                return
             if 'Actual' not in log:
                 return
 
@@ -219,41 +226,10 @@ class Log(object):
             map(lambda x: x.add(log), self.lines)
             self.raw_log.append(log)
 
+
         # update view
         plt.draw()
         plt.pause(0.001)
-
-    def isdone(self):
-        return (
-            self.last_action is not None and
-            time() - self.last_action > 5
-        )
-
-
-def loop_all_profiles(num_profiles=6):
-    log = Log()
-
-    with get_tty() as port:
-        profile = 0
-        def select_profile(profile):
-            port.write('stop\n')
-            port.write('select profile %d\n' % profile)
-            port.write('reflow\n')
-
-        select_profile(profile)
-
-        while True:
-            logline = port.readline().strip()
-
-            if log.isdone():
-                log.last_action = None
-                profile += 1
-                if profile > 6:
-                    print 'Done.'
-                    sys.exit()
-                select_profile(profile)
-
-            log.process_log(logline)
 
 def logging_only():
     log = Log()
@@ -272,13 +248,13 @@ def logging_only():
 
 if __name__ == '__main__':
     action = sys.argv[1] if len(sys.argv) > 1 else 'log'
+    if len(sys.argv) > 1:
+        try:
+            port = serial.Serial(sys.argv[1], baudrate=BAUD_RATE)
+            TTYs = [sys.argv[1]]
+        except:
+            pass
 
-    if action == 'log':
-        print 'Logging reflow sessions...'
-        logging_only()
 
-    elif action == 'test':
-        print 'Looping over all profiles'
-        loop_all_profiles()
-    else:
-        print 'Unknown action', action
+    print 'Logging reflow sessions...'
+    logging_only()
