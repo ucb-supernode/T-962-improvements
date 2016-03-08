@@ -506,9 +506,9 @@ static int32_t Main_Work(void) {
 		LCD_disp_str((uint8_t*)buf, len, 0, y, FONT6X6);
 
 		y = 34;
-		len = snprintf(buf, sizeof(buf), "  L %3.1f`", Sensor_GetTemp(TC_LEFT));
+		len = snprintf(buf, sizeof(buf), "  B %3.1f`", Sensor_GetTemp(TC_LEFT));
 		LCD_disp_str((uint8_t*)buf, len, 0, y, FONT6X6);
-		len = snprintf(buf, sizeof(buf), "  R %3.1f`", Sensor_GetTemp(TC_RIGHT));
+		len = snprintf(buf, sizeof(buf), "  F %3.1f`", Sensor_GetTemp(TC_RIGHT));
 		LCD_disp_str((uint8_t*)buf, len, LCD_CENTER, y, FONT6X6);
 
 		if (Sensor_IsValid(TC_EXTRA1) || Sensor_IsValid(TC_EXTRA1)) {
